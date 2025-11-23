@@ -1,27 +1,31 @@
-import 'react-native-url-polyfill/auto';
-import 'react-native-get-random-values';
+// App.tsx
+import "react-native-url-polyfill/auto";
+import "react-native-get-random-values";
 
-import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { useEffect, useState } from 'react';
-import { supabase } from './src/lib/supabase';
-import LoginScreen from './src/screens/LoginScreen';
-import HomeScreen from './src/screens/HomeScreen';
+import { NavigationContainer } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { useEffect, useState } from "react";
+import { supabase } from "./src/lib/supabase";
+import LoginScreen from "./src/screens/LoginScreen";
+import HomeScreen from "./src/screens/HomeScreen";
+import GroupScreen from "./src/screens/GroupScreen";
+import NewGroupScreen from "./src/screens/NewGroupScreen";
 
+// Rutas de Screens
 export type RootStackParamList = {
   Login: undefined;
   Home: undefined;
+  Group: { groupId: string; groupName: string };
+  NewGroup: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function App() {
-  // Estado para saber si estamos logueados y si ya se verificó la sesión
   const [logged, setLogged] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Al arrancar, mira si ya hay sesión activa en el dispositivo
     supabase.auth.getSession().then(({ data }) => {
       setLogged(!!data.session);
       setLoading(false);
@@ -31,23 +35,32 @@ export default function App() {
       setLogged(!!session);
     });
 
-    // Limpieza: al desmontar, cancela la suscripción
     return () => result.data.subscription.unsubscribe();
   }, []);
 
-  // Mientras carga, loading
   if (loading) return null;
 
   return (
     <NavigationContainer>
       {logged ? (
-        // Navegación del usuario autenticado
-        <Stack.Navigator initialRouteName="Home" screenOptions={{ headerTitle: 'Splitmate' }}>
+        <Stack.Navigator
+          initialRouteName="Home"
+          screenOptions={{ headerTitle: "Splitmate" }}
+        >
           <Stack.Screen name="Home" component={HomeScreen} />
+          <Stack.Screen name="Group" component={GroupScreen} />
+          <Stack.Screen
+            name="NewGroup"
+            component={NewGroupScreen}
+            options={{ title: "Nuevo grupo" }}
+          />
+
         </Stack.Navigator>
       ) : (
-        // Navegación del usuario no autenticado
-        <Stack.Navigator initialRouteName="Login" screenOptions={{ headerShown: false }}>
+        <Stack.Navigator
+          initialRouteName="Login"
+          screenOptions={{ headerShown: false }}
+        >
           <Stack.Screen name="Login" component={LoginScreen} />
         </Stack.Navigator>
       )}
